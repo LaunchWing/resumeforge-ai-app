@@ -1,0 +1,141 @@
+// Auto-generated entrypoint for Cloudflare Worker
+
+import { ContentPersonalizationBackendHandler } from './api/ContentPersonalizationBackend';
+import { ResumeDownloadBackendHandler } from './api/ResumeDownloadBackend';
+import { AIEngineHandler } from './api/AIEngine';
+import { TemplateDatabaseHandler } from './api/TemplateDatabase';
+
+const INDEX_HTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>ResumeForge AI</title>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <img src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-eeM7RLe3Wv2HZ7Toub47POas/user-rnGwZEmjnwoUoF8lEvadvt0O/img-EmLzPXZDrmDjFFhZnWyLqSxQ.png?st=2025-07-28T16%3A12%3A13Z&se=2025-07-28T18%3A12%3A13Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-28T02%3A25%3A08Z&ske=2025-07-29T02%3A25%3A08Z&sks=b&skv=2024-08-04&sig=EaYXBArkMkbK4ptAVbKzys9hGo0zqjU2vAm4f5nf7d4%3D" alt="ResumeForge AI Logo" class="h-10">
+            <h1 class="text-lg font-bold">ResumeForge AI</h1>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <section class="bg-white shadow-md rounded-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">Crafting Your Future, One Resume at a Time</h2>
+            <form id="user-input-form" class="space-y-4">
+                <div>
+                    <label for="career-field" class="block text-sm font-medium text-gray-700">Career Field</label>
+                    <input type="text" id="career-field" name="careerField" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Software Engineering">
+                </div>
+                <div>
+                    <label for="key-skills" class="block text-sm font-medium text-gray-700">Key Skills</label>
+                    <input type="text" id="key-skills" name="keySkills" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., JavaScript, React, Node.js">
+                </div>
+                <div>
+                    <label for="experience-level" class="block text-sm font-medium text-gray-700">Experience Level</label>
+                    <select id="experience-level" name="experienceLevel" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option>Junior</option>
+                        <option>Mid</option>
+                        <option>Senior</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="target-job" class="block text-sm font-medium text-gray-700">Target Job</label>
+                    <input type="text" id="target-job" name="targetJob" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., Frontend Developer">
+                </div>
+                <div>
+                    <button type="submit" class="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Submit</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="template-selection" class="bg-white shadow-md rounded-md p-6 mb-6 hidden">
+            <h2 class="text-2xl font-bold mb-4">Choose Your Template</h2>
+            <!-- Template options will be dynamically inserted here -->
+        </section>
+
+        <section id="customization-options" class="bg-white shadow-md rounded-md p-6 mb-6 hidden">
+            <h2 class="text-2xl font-bold mb-4">Customize Your Design</h2>
+            <!-- Customization options will be dynamically inserted here -->
+        </section>
+
+        <section id="output-options" class="bg-white shadow-md rounded-md p-6 mb-6 hidden">
+            <h2 class="text-2xl font-bold mb-4">Download Your Resume</h2>
+            <button id="download-pdf" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Download PDF</button>
+            <button id="download-word" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Download Word</button>
+            <button id="create-portfolio" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Create Online Portfolio</button>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto text-center">
+            <p class="text-sm">&copy; 2023 ResumeForge AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+`;
+const STYLE_CSS = ``;
+const SCRIPT_JS = `
+// Handle form submission
+const form = document.getElementById('user-input-form');
+form.addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    // Gather user input
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    // Call the backend API to get template suggestions
+    const response = await fetch('/functions/api/handler.ts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+        const templates = await response.json();
+        displayTemplates(templates);
+    } else {
+        console.error('Error fetching templates');
+    }
+});
+
+function displayTemplates(templates) {
+    const templateSection = document.getElementById('template-selection');
+    templateSection.classList.remove('hidden');
+
+    // Clear previous templates
+    templateSection.innerHTML = '<h2 class="text-2xl font-bold mb-4">Choose Your Template</h2>';
+
+    // Display new templates
+    templates.forEach(template => {
+        const templateDiv = document.createElement('div');
+        templateDiv.className = 'p-4 bg-gray-100 mb-4 rounded-md';
+        templateDiv.innerHTML = \`<h3 class="text-lg font-bold">\${template.name}</h3><p>\${template.description}</p>\`;
+        templateSection.appendChild(templateDiv);
+    });
+}
+`;
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (path === '/') return new Response(INDEX_HTML, { headers: { 'Content-Type': 'text/html' } });
+    if (path === '/style.css') return new Response(STYLE_CSS, { headers: { 'Content-Type': 'text/css' } });
+    if (path === '/script.js') return new Response(SCRIPT_JS, { headers: { 'Content-Type': 'application/javascript' } });
+    if (path === '/api/ContentPersonalizationBackend') return ContentPersonalizationBackendHandler(request);
+    if (path === '/api/ResumeDownloadBackend') return ResumeDownloadBackendHandler(request);
+    if (path === '/api/AIEngine') return AIEngineHandler(request);
+    if (path === '/api/TemplateDatabase') return TemplateDatabaseHandler(request);
+    return new Response('Not found', { status: 404 });
+  }
+};
